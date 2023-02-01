@@ -11,23 +11,16 @@ const { request } = require("express");
 const dotenv = require("dotenv");
 dotenv.config();
 
-exports.search = async (req, res) => {
+exports.get_all_map_pointers = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Max-Age", "1800");
   res.setHeader("Access-Control-Allow-Headers", "content-type");
-
   try {
-    Room.find({ address: { $regex: req.body.address } })
-      .then((rooms) => {
-        res.json({ rooms });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    const rooms = await Room.find({}, { latitude: 1, longitude: 1 });
+    res.status(200).json(rooms);
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: true, message: "Internet server error" });
+    res.status(500).json(err);
   }
 };
 

@@ -12,7 +12,7 @@ route.get("/:id", controller.single);
 route.get("/api/experiences", verificationToken, controller.exp);
 route.post("/review", verificationToken, controller.review);
 route.get("/api/main", controller.main);
-route.get("/api/search", controller.search);
+route.get("/api/map/pointers", controller.get_all_map_pointers);
 route.get(
   "/api/reservations/today",
   verificationToken,
