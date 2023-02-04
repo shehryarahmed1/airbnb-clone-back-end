@@ -38,6 +38,8 @@ const userSchema = new mongoose.Schema({
   },
   profile_image: {
     type: String,
+    default:
+      "https://t4.ftcdn.net/jpg/03/31/69/91/360_F_331699188_lRpvqxO5QRtwOM05gR50ImaaJgBx68vi.jpg",
   },
   rooms: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   reservations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reservation" }],

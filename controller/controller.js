@@ -11,6 +11,7 @@ const { request } = require("express");
 const dotenv = require("dotenv");
 dotenv.config();
 
+// Fetching all the latitude and longitudes so that on front-end we can render them on map
 exports.get_all_map_pointers = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -24,6 +25,7 @@ exports.get_all_map_pointers = async (req, res) => {
   }
 };
 
+// Listing rooms based on some criteria
 exports.main = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -62,7 +64,7 @@ exports.main = async (req, res) => {
       // forward the request
     } else {
       // do not forward the request
-      console.log("klj");
+      console.log("Values not provided");
     }
 
     const response = {
@@ -77,7 +79,7 @@ exports.main = async (req, res) => {
     res.status(500).json({ error: true, message: err });
   }
 };
-// Update User
+// Updating a users data
 
 exports.update_user = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -85,10 +87,7 @@ exports.update_user = async (req, res) => {
   res.setHeader("Access-Control-Max-Age", "1800");
   res.setHeader("Access-Control-Allow-Headers", "content-type");
   const exect_user = await User.find({ _id: req.params.id });
-  // console.log("exect_room.owner_id");
-  // console.log(exect_room[0].owner_id);
-  // console.log("user._id");
-  // console.log(req.user._id);
+
   if (!req.body.email) {
     if (exect_user[0]._id == req.user._id) {
       var update_user = await User.findByIdAndUpdate(
@@ -98,13 +97,13 @@ exports.update_user = async (req, res) => {
         },
         { new: true }
       );
-      res.send(exect_user);
+      res.status(200).json(exect_user);
       res.end();
     } else {
-      res.write("You are not allowed");
+      res.status(500).json("You are not allowed");
     }
   } else {
-    res.write("You are not allowed to update email");
+    res.status(500).json("You are not allowed to update email");
   }
   res.end();
 };
@@ -118,10 +117,6 @@ exports.update_room = async (req, res) => {
   res.setHeader("Access-Control-Allow-Headers", "content-type");
   try {
     const exect_room = await Room.find({ _id: req.params.id });
-    // console.log("exect_room.owner_id");
-    // console.log(exect_room[0].owner_id);
-    // console.log("user._id");
-    // console.log(req.user._id);
     if (exect_room[0].owner_id == req.user._id) {
       const update_room = await Room.findByIdAndUpdate(
         req.params.id,
@@ -139,6 +134,7 @@ exports.update_room = async (req, res) => {
   }
 };
 
+// Get a user's data to update
 exports.get_user_data = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -156,6 +152,7 @@ exports.get_user_data = async (req, res) => {
   }
 };
 
+// Get a rooms data to update
 exports.single_room_edit = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -195,9 +192,6 @@ exports.home = async (req, res) => {
       .catch((err) => {
         console.log("err");
       });
-    // const userr =  User.findById(user._id)
-    // .populate("_id")
-    // res.send(user);
   });
 };
 
@@ -443,13 +437,69 @@ exports.reserve = async (req, res) => {
   res.setHeader("Access-Control-Max-Age", "1800");
   res.setHeader("Access-Control-Allow-Headers", "content-type");
 
+  req.user.password = undefined;
   const { dateStart, dateEnd, room, guests } = req.body;
 
   if (!dateStart || !dateEnd || !room || !guests) {
     return res.status(422).json({ error: "Please add all the fields" });
   }
 
-  req.user.password = undefined;
+  const single_product = await Room.findById(
+    "63d03ebf91653c0cf6c110db"
+  ).populate("reservations");
+  let disabledDates = [];
+
+  var getDaysArray = function (start, end) {
+    for (
+      var arr = [], dt = new Date(start);
+      dt <= new Date(end);
+      dt.setDate(dt.getDate() + 1)
+    ) {
+      arr.push(new Date(dt));
+    }
+
+    return arr;
+  };
+  let messedupDates = []; //To send to user what dates to fix up
+
+  for (let index = 0; index < single_product.reservations.length; index++) {
+    const element = single_product.reservations[index];
+    element;
+    const dateStartLoop = new Date(
+      single_product.reservations[index].dateStart
+    );
+    const dateEndLoop = new Date(single_product.reservations[index].dateEnd);
+    const date = new Date(dateStartLoop.getTime());
+
+    var dates = [];
+    while (date <= dateEndLoop) {
+      dates.push(new Date(date));
+      date.setDate(date.getDate() + 1);
+    }
+
+    dates.pop();
+    disabledDates.push(dates);
+    dates;
+
+    for (let index = 0; index < dates.length; index++) {
+      const reservedDay = dates[index];
+      let selectedDays = getDaysArray(dateStart, dateEnd);
+      for (let index = 0; index < selectedDays.length; index++) {
+        const element = selectedDays[index];
+        if (element.toString() == reservedDay.toString()) {
+          messedupDates.push(element);
+          console.log(reservedDay);
+        }
+      }
+    }
+  }
+  if (messedupDates.length > 0) {
+    return res
+      .status(422)
+      .json({ message: "Days already reserved", days: messedupDates });
+  }
+  // Dont touch --
+
   const reservation = new Reservation({
     dateStart,
     dateEnd,
@@ -478,10 +528,6 @@ exports.reserve = async (req, res) => {
           res.send("Completed");
         });
       });
-      // .catch((err) => {
-      //   console.log(err);
-      // });
-      // res.send("COmpleted");
     })
     .catch((err) => {
       console.log(err);
