@@ -67,14 +67,16 @@ const roomSchema = new mongoose.Schema({
   updated_at: {
     type: String,
   },
-  updated_at: {
-    type: String,
-  },
-  latitude: {
-    type: String,
-  },
-  longitude: {
-    type: String,
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
   },
   place: {
     type: String,

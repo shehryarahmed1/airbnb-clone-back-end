@@ -6,6 +6,9 @@ const reservationSchema = new mongoose.Schema({
   guests: { type: Number },
   creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   room: { type: mongoose.Schema.Types.ObjectId, ref: "Room" },
+  month: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("Reservation", reservationSchema);

@@ -30,8 +30,8 @@ const userSchema = new mongoose.Schema({
     require: true,
   },
   created_at: {
-    type: String,
-    require: true,
+    type: Date,
+    default: new Date(),
   },
   updated_at: {
     type: String,
@@ -43,6 +43,7 @@ const userSchema = new mongoose.Schema({
   },
   rooms: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   reservations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reservation" }],
+  reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
 });
 
 module.exports = mongoose.model("User", userSchema);
